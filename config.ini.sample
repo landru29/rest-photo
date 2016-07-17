@@ -5,3 +5,6 @@ password  = "password"
 port      = "3306"
 host      = "localhost"
 name      = "dbName"
+
+[album]
+folder    = "./pictures"
