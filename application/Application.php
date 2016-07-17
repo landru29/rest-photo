@@ -4,9 +4,10 @@ appendIncludePath(dirname(__FILE__));
 class Application {
     var $restApp;
 
-    function Application() {
+    function Application($options) {
         $this->restApp = new Rest_Application();
         $this->init();
+        $this->pdo = new Pdo_Connect($options["config"]["database"]);
     }
 
     function init () {

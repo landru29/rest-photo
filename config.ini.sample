@@ -1,0 +1,7 @@
+[database]
+type      = "mysql"
+username  = "username"
+password  = "password"
+port      = "3306"
+host      = "localhost"
+name      = "dbName"

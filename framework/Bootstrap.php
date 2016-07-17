@@ -10,3 +10,7 @@ function __autoload($class_name) {
 }
 
 appendIncludePath(dirname(__FILE__));
+
+function getConfig() {
+    return parse_ini_file("config.ini", true);
+}
