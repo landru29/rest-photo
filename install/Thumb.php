@@ -50,16 +50,74 @@ class Thumb {
         }
     }
 
+    function rotateThumb($filename, $img) {
+        // get orientation
+        try {
+            $degrees=0;
+            $flip=null;
+            $exif = exif_read_data($filename);
+            $orientation = $exif['Orientation'];
+
+            switch ($orientation) {
+                case 2:
+                    $flip = IMG_FLIP_HORIZONTAL;
+                    break;
+                case 3:
+                    $degrees = 180;
+                    break;
+                case 4:
+                    $flip = IMG_FLIP_VERTICAL;
+                    break;
+                case 5:
+                    $degrees = -90;
+                    $flip = IMG_FLIP_HORIZONTAL;
+                    break;
+                case 6:
+                    $degrees = -90;
+                    break;
+                case 7:
+                    $degrees = -90;
+                    $flip = IMG_FLIP_VERTICAL;
+                    break;
+                case 8:
+                    $degrees = 90;
+                    break;
+                default:
+                return $img;
+            }
+
+            // rotation
+            $newImg = $degrees != 0 ? imagerotate($img, $degrees, 0) : $img;
+            // Retournement
+            if ($flip != null) {
+                imageflip($newImg, $flip);
+            }
+            return $newImg;
+
+        } catch (exception $e) {
+            return $img;
+        }
+    }
+
     function pictureToThumb($filename, $thumbname) {
         try {
             echo "   - Creating " . $thumbname;
             $img = imagecreatefromjpeg( $filename );
+
+            // Rotate
+            $img = $this->rotateThumb($filename, $img);
+
             $width = imagesx( $img );
             $height = imagesy( $img );
 
             // calculate thumbnail size
-            $new_width = $this->options["width"];
-            $new_height = floor( $height * ( $new_width / $width ) );
+            if ($height < $width) {
+                $new_width = $this->options["width"];
+                $new_height = floor( $height * ( $new_width / $width ) );
+            } else {
+                $new_height = $this->options["width"];
+                $new_width = floor( $width * ( $new_height / $height) );
+            }
 
             // create a new temporary image
             $tmp_img = imagecreatetruecolor( $new_width, $new_height );
