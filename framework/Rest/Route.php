@@ -6,7 +6,7 @@ class Rest_Route {
     var $variables;
     var $routes;
 
-    function Rest_Route($path) {
+    function __construct($path) {
         $this->init($path);
     }
 

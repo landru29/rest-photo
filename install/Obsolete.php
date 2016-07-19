@@ -3,7 +3,7 @@ class Obsolete {
     var $dbConnexion;
     var $options;
 
-    function Obsolete ($options, $dbConnexion) {
+    function __construct($options, $dbConnexion) {
         $this->dbConnexion = $dbConnexion;
         $this->options = $options;
         $toRemove = $this->getObsolete();

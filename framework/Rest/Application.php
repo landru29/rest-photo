@@ -5,7 +5,7 @@ class Rest_Application {
     var $middlewares;
     var $response;
 
-    function Rest_Application() {
+    function __construct() {
         $this->routes = array();
         $this->middlewares = array();
         $this->request = new Rest_Request();

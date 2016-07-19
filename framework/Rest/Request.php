@@ -8,7 +8,7 @@ class Rest_Request {
     var $params;
     var $headers;
 
-    function Rest_Request() {
+    function __construct() {
         $this->path = $_SERVER["PATH_INFO"];
         $this->query = $_GET;
         $this->method = strtoupper($_SERVER["REQUEST_METHOD"]);

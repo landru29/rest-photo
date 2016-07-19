@@ -4,7 +4,7 @@ class Rest_Response {
     var $status;
     var $headers;
 
-    function Rest_Response () {
+    function __construct() {
         $this->data = '';
         $this->status = 200;
         $this->headers = array();

@@ -5,7 +5,7 @@ class Rest_Middleware {
     var $request;
     var $response;
 
-    function Rest_Middleware ($name, callable $callback, Rest_Request $request, Rest_Response $response) {
+    function __construct($name, callable $callback, Rest_Request $request, Rest_Response $response) {
         $this->name = $name;
         $this->callback = $callback;
         $this->request = $request;

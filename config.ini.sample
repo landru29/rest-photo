@@ -11,3 +11,6 @@ folder    = "./pictures"
 width     = 100
 pics[]    = "jpg"
 pics[]    = "jpeg"
+vids[]    =  "mpeg"
+vids[]    =  "mpg"
+vids[]    =  "avi"
