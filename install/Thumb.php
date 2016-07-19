@@ -5,6 +5,7 @@ class Thumb {
     var $dbConnexion;
 
     function __construct($options, $dbConnexion) {
+        $this->files = array();
         $this->dirToArray($options["folder"]);
         $this->options = $options;
         $this->dbConnexion = $dbConnexion;
@@ -22,9 +23,17 @@ class Thumb {
         }
     }
 
+    function cleanFilename ($file) {
+        return preg_replace('#^/#', '', substr($file, strlen($this->options["folder"])));
+    }
+
     function updateDb($filename, $thumbname) {
+        $info = pathinfo($filename);
+        $title = $info['filename'];
+        $filename = $this->cleanFilename($filename);
+        $thumbname = $this->cleanFilename($thumbname);
         try {
-            echo "   - Inserting " . $thumbname;
+            echo "   - Inserting (DB) " . $thumbname;
             $sql = 'SELECT *
                     FROM picture
                     WHERE filename = :filename';
@@ -33,18 +42,18 @@ class Thumb {
             if (count($sth->fetchAll())) {
                 echo "\t\033[34m(UPDATE)\033[0m";
                 $sql = 'UPDATE picture
-                SET thumb=:thumbname
+                SET thumb=:thumbname , title=:title
                 WHERE filename = :filename';
             } else {
                 echo "\t\033[35m(CREATE)\033[0m";
-                $sql = 'INSERT INTO picture (filename, rate, thumb)
-                        VALUES (:filename, 0, :thumbname)';
+                $sql = 'INSERT INTO picture (filename, rate, thumb, title)
+                        VALUES (:filename, 0, :thumbname, :title)';
             }
             $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
-            $sth->execute(array(':filename' => $filename, ':thumbname' => $thumbname));
-            echo "\t\033[32m[OK]\033[0m\n";
+            $sth->execute(array(':filename' => $filename, ':thumbname' => $thumbname, ':title' => $title));
+            echo "\t\t\033[32m[OK]\033[0m\n";
         } catch(Exception $e) {
-            echo "\t\033[31m[ERROR]\033[0m\n";
+            echo "\t\t\033[31m[ERROR]\033[0m\n";
             echo $e->getMessage()."\n";
             exit(1);
         }
@@ -101,7 +110,7 @@ class Thumb {
 
     function pictureToThumb($filename, $thumbname) {
         try {
-            echo "   - Creating " . $thumbname;
+            echo "   - Creating (File) " . $thumbname;
             $img = imagecreatefromjpeg( $filename );
 
             // Rotate
@@ -136,12 +145,11 @@ class Thumb {
     }
 
     function dirToArray($dir) {
-        $this->files = array();
         $cdir = scandir($dir);
         foreach ($cdir as $key => $value) {
           if (!in_array($value,array(".",".."))) {
              if (is_dir($dir . DIRECTORY_SEPARATOR . $value)) {
-                $this->files[$value] = dirToArray($dir . DIRECTORY_SEPARATOR . $value);
+                 $this->dirToArray($dir . DIRECTORY_SEPARATOR . $value);
              }
              else if ( !preg_match('#_thumb\.[a-zA-Z0-9]*#', $value)) {
                 $this->files[] = $dir . DIRECTORY_SEPARATOR . $value;

@@ -1,9 +1,11 @@
 <?php
 class Obsolete {
     var $dbConnexion;
+    var $options;
 
-    function Obsolete ($dbConnexion) {
+    function Obsolete ($options, $dbConnexion) {
         $this->dbConnexion = $dbConnexion;
+        $this->options = $options;
         $toRemove = $this->getObsolete();
         $this->removeObsolete($toRemove);
     }
@@ -15,11 +17,12 @@ class Obsolete {
         $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
         $sth->execute();
         forEach($sth->fetchAll() as $data) {
-            $filename = $data["filename"];
+            $filename = $this->options["folder"] . DIRECTORY_SEPARATOR . $data["filename"];
             if (!file_exists($filename)) {
-                $result[] = $filename;
-                if (file_exists($data["thumb"])) {
-                    unlink($data["thumb"]);
+                $result[] = $data["filename"];
+                $thumb = $this->options["folder"] . DIRECTORY_SEPARATOR . $data["thumb"];
+                if (file_exists($thumb)) {
+                    unlink($thumb);
                 }
             }
         }

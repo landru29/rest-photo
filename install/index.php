@@ -33,7 +33,8 @@ try {
     . "  `filename` varchar(300) NOT NULL,"
     . "  `rate` tinyint(3) unsigned NOT NULL,"
     . "  `thumb` varchar(300) NOT NULL,"
-    . "  `name` varchar(100) NOT NULL,"
+    . "  `title` varchar(100) NOT NULL,"
+    . "  `description` text NOT NULL,"
     . "  PRIMARY KEY (`filename`)"
     . ") ENGINE=InnoDB DEFAULT CHARSET=latin1;");
     echo "\t\t\033[32m[OK]\033[0m\n";
@@ -43,6 +44,6 @@ try {
     exit(1);
 }
 
-$obsolete = new Obsolete($connexion);
+$obsolete = new Obsolete($config["album"], $connexion);
 
 $thumb = new Thumb($config["album"], $connexion);
