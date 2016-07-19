@@ -13,12 +13,19 @@ class Thumb {
     }
 
     function pictureBuilder() {
+        $total = count($this->files);
+        $i = 0;
         forEach($this->files as $file) {
             if (preg_match("#" . join($this->options["pics"], '$|') . "$#i", $file)) {
                 $info = pathinfo($file);
                 $thumbFilename = $info["dirname"] . DIRECTORY_SEPARATOR . $info["filename"] . "_thumb." . $info["extension"];
                 $this->pictureToThumb($file, $thumbFilename);
                 $this->updateDb($file, $thumbFilename);
+            }
+            $i++;
+            $percent = floor(100 * ($i) / $total);
+            if (floor(100 * ($i-1) / $total) != $percent) {
+                echo "-------------------------------------- " . $percent . "%\n";
             }
         }
     }
@@ -27,11 +34,26 @@ class Thumb {
         return preg_replace('#^/#', '', substr($file, strlen($this->options["folder"])));
     }
 
-    function updateDb($filename, $thumbname) {
+    function getType($filename) {
         $info = pathinfo($filename);
-        $title = $info['filename'];
+        $ext = $info['extension'];
+        if (in_array($ext , $this->options['pics'])) {
+            return "photo";
+        }
+        if (in_array($ext , $this->options['vids'])) {
+            return "video";
+        }
+        return "undefined";
+    }
+
+    function updateDb($filename, $thumbname) {
         $filename = $this->cleanFilename($filename);
         $thumbname = $this->cleanFilename($thumbname);
+        $info = pathinfo($filename);
+        $title = $info['filename'];
+        $folder = preg_replace('#^.$#', '', $info['dirname']);
+        $basename = $info['basename'];
+        $level = count(preg_split('@/@', $folder, NULL, PREG_SPLIT_NO_EMPTY));
         try {
             echo "   - Inserting (DB) " . $thumbname;
             $sql = 'SELECT *
@@ -39,18 +61,27 @@ class Thumb {
                     WHERE filename = :filename';
             $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
             $sth->execute(array(':filename' => $filename));
+            $bindings = array(
+                ':filename'  => $filename,
+                ':basename'  => $basename,
+                ':thumbname' => $thumbname,
+                ':folder'    => $folder,
+                ':level'     => $level,
+                ':type'      => $this->getType($filename),
+            );
             if (count($sth->fetchAll())) {
                 echo "\t\033[34m(UPDATE)\033[0m";
                 $sql = 'UPDATE picture
-                SET thumb=:thumbname , title=:title
+                SET thumb=:thumbname, folder=:folder, level=:level, basename=:basename, type=:type
                 WHERE filename = :filename';
             } else {
                 echo "\t\033[35m(CREATE)\033[0m";
-                $sql = 'INSERT INTO picture (filename, rate, thumb, title)
-                        VALUES (:filename, 0, :thumbname, :title)';
+                $sql = 'INSERT INTO picture (filename, rate, thumb, title, folder, level, basename, type)
+                        VALUES (:filename, 0, :thumbname, :title, :folder, :level, :basename, :type)';
+                $bindings['title'] = $title;
             }
             $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
-            $sth->execute(array(':filename' => $filename, ':thumbname' => $thumbname, ':title' => $title));
+            $sth->execute($bindings);
             echo "\t\t\033[32m[OK]\033[0m\n";
         } catch(Exception $e) {
             echo "\t\t\033[31m[ERROR]\033[0m\n";
@@ -65,7 +96,7 @@ class Thumb {
             $degrees=0;
             $flip=null;
             $exif = exif_read_data($filename);
-            $orientation = $exif['Orientation'];
+            $orientation = array_key_exists('Orientation', $exif) ? $exif['Orientation'] : 1;
 
             switch ($orientation) {
                 case 2:

@@ -8,3 +8,6 @@ name      = "dbName"
 
 [album]
 folder    = "./pictures"
+width     = 100
+pics[]    = "jpg"
+pics[]    = "jpeg"

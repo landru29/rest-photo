@@ -31,9 +31,13 @@ try {
     echo "* Creating tables";
     $connexion->query("CREATE TABLE IF NOT EXISTS `picture` ("
     . "  `filename` varchar(300) NOT NULL,"
+    . "  `basename` varchar(300) NOT NULL,"
     . "  `rate` tinyint(3) unsigned NOT NULL,"
+    . "  `level` tinyint(3) unsigned NOT NULL,"
+    . "  `folder` varchar(300) NOT NULL,"
     . "  `thumb` varchar(300) NOT NULL,"
     . "  `title` varchar(100) NOT NULL,"
+    . "  `type` varchar(30) NOT NULL,"
     . "  `description` text NOT NULL,"
     . "  PRIMARY KEY (`filename`)"
     . ") ENGINE=InnoDB DEFAULT CHARSET=latin1;");
