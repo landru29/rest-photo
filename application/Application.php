@@ -28,9 +28,31 @@ class Application {
     }
 
     function buildRoutes($desc) {
+        $routes = array();
         forEach($desc as $ctrlTarget => $methodRoute) {
             $detail = $this->getRouteDesc($ctrlTarget, $methodRoute);
-            
+            if (!array_key_exists($detail['route'], $routes)) {
+                $routes[$detail['route']] = array();
+            }
+            $routes[$detail['route']][] = $detail;
+        }
+
+        forEach($routes as $route => $details) {
+            $router = new Rest_Route($route);
+            forEach($details as $detail) {
+                $this->restApp->route($router->set($detail['method'], function ($req, $resp) {
+                    $ctrl = $detail['ctrl'];
+                    $func = $detail['func'];
+                    $result = $ctrl->$func($req);
+                    $code = 200;
+                    $data = $result;
+                    if (array_key_exists('code', $result)) {
+                        $code = $result['code'];
+                        $data = $result['data'];
+                    }
+                    $resp->status($code)->json($data);
+                }));
+            }
         }
     }
 

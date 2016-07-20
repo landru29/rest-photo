@@ -32,6 +32,9 @@ class Picture_Controller {
         }
         $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
         $sth->execute($bindings);
-        return $sth->fetchAll();
+        return array(
+            'data' => $sth->fetchAll(),
+            'code' => 200
+        );
     }
 }
