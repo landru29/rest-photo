@@ -1,5 +1,5 @@
 <?php
-class PictureController {
+class Picture_Controller {
     var $options;
     var $db;
 
@@ -8,7 +8,8 @@ class PictureController {
         $this->db = $db;
     }
 
-    function get($query) {
+    function get() {
+        $query = $data['query'];
         if (!$query) {
             $sql = 'SELECT * FROM picture';
             $bindings = array();
@@ -18,7 +19,7 @@ class PictureController {
                     FROM picture
                     WHERE filename = :filename';
             $bindings = array(
-                ':filename' => $query['filename'];
+                ':filename' => $query['filename']
             );
         }
         if (array_key_exists('folder', $query)) {
@@ -26,7 +27,7 @@ class PictureController {
                     FROM picture
                     WHERE folder = :folder';
             $bindings = array(
-                ':folder' => $query['folder'];
+                ':folder' => $query['folder']
             );
         }
         $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));

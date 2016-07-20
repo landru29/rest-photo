@@ -14,3 +14,7 @@ pics[]    = "jpeg"
 vids[]    =  "mpeg"
 vids[]    =  "mpg"
 vids[]    =  "avi"
+
+[rest]
+;controller/method = "METHOD/route"
+pictures/get  = "GET/pictures"

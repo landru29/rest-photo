@@ -7,11 +7,41 @@ class Application {
 
     function Application($options) {
         $this->restApp = new Rest_Application();
-        $this->init();
+        $this->init($options);
         $this->pdo = new Pdo_Connect($options["config"]["database"]);
         $this->controllers = array(
-            'picture' => new PictureController($options["config"], $this->pdo)
+            'picture' => new Picture_Controller($options["config"], $this->pdo)
         );
+        $this->buildRoutes($options["config"]['rest']);
+    }
+
+    function getRouteDesc($ctrlTarget, $methodRoute) {
+        $result = array();
+        $explosion = explode('/', $ctrlTarget);
+        $result['ctrl'] = $explosion[0];
+        $result['func'] = $explosion[1];
+        if (preg_match('#([A-Za-z]*)/(.*)#', $methodRoute, $match)) {
+            $result['method'] = strtoupper($match[1]);
+            $result['route'] = $match[2];
+        }
+        return $result;
+    }
+
+    function buildRoutes($desc) {
+        forEach($desc as $ctrlTarget => $methodRoute) {
+            $detail = $this->getRouteDesc($ctrlTarget, $methodRoute);
+            
+        }
+    }
+
+    function LaunchControllers($ctrl, $method, $data) {
+        if (array_key_exists($ctrl, $this->controllers)) {
+            $controller = $this->controllers[$ctrl];
+            $method = ucFirst($method);
+            if (in_array(ucFirst($method), get_class_methods($controller))) {
+                return $controller->$method($data);
+            }
+        }
     }
 
     function init () {
