@@ -3,9 +3,9 @@ class Picture_Controller {
     var $options;
     var $db;
 
-    function __construct($options, $db) {
+    function __construct($options, $application) {
         $this->options = $options;
-        $this->db = $db;
+        $this->app = $application;
     }
 
     function get($req) {

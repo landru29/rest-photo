@@ -2,18 +2,19 @@
 class Rest_Middleware {
     var $name;
     var $callback;
-    var $request;
-    var $response;
 
-    function __construct($name, callable $callback, Rest_Request $request, Rest_Response $response) {
+    /**
+     * Constructor
+     * @param String        $name     Middleware name
+     * @param callable      $callback Function to invoke (req, res)
+     */
+    function __construct($name, callable $callback) {
         $this->name = $name;
         $this->callback = $callback;
-        $this->request = $request;
-        $this->response = $response;
     }
 
-    function execute() {
+    function execute($req, $res) {
         $callback = $this->callback;
-        $callback($this->request, $this->response);
+        $callback($req, $res);
     }
 }

@@ -4,19 +4,27 @@ appendIncludePath(dirname(__FILE__));
 class Application {
     var $restApp;
     var $controllers;
-    var $controllerData;
 
-    function Application($options) {
+    /**
+     * Constructor
+     * @param Array $options Application options
+     */
+    function __construct ($options) {
         $this->restApp = new Rest_Application();
-        $this->init($options);
         $this->pdo = new Pdo_Connect($options["config"]["database"]);
         $this->controllers = array(
-            'picture' => new Picture_Controller($options["config"], $this->pdo)
+            'picture' => new Picture_Controller($options["config"], $this)
         );
         $this->buildRoutes($options["config"]['rest']);
     }
 
-    function getRouteDesc($ctrlTarget, $methodRoute) {
+    /**
+     * Build a route descriptor from config entry
+     * @param  String $ctrlTarget  Controller descriptor (controller/method)
+     * @param  String $methodRoute Route descriptor (METHOD/route)
+     * @return Array               Descriptor
+     */
+    function getRouteDesc ($ctrlTarget, $methodRoute) {
         $result = array();
         $explosion = explode('/', $ctrlTarget);
         $result['ctrl'] = $explosion[0];
@@ -28,17 +36,11 @@ class Application {
         return $result;
     }
 
-    function setController(callable $controller) {
-        $this->controllerData = $controller;
-    }
-
-    function controller($req) {
-        $ctrl = $this->controllerData[0];
-        $callb = $this->controllerData[1];
-        return $ctrl->$callb($req);
-    }
-
-    function buildRoutes($desc) {
+    /**
+     * Build all routes
+     * @param Array $desc Route descriptor
+     */
+    function buildRoutes ($desc) {
         $routes = array();
         forEach($desc as $ctrlTarget => $methodRoute) {
             $detail = $this->getRouteDesc($ctrlTarget, $methodRoute);
@@ -53,29 +55,28 @@ class Application {
             forEach($details as $detail) {
                 $ctrl = $this->controllers[$detail['ctrl']];
                 $func = $detail['func'];
-                $this->setController(array($ctrl, $func));
-                $this->restApp->route($router->set($detail['method'], function ($req, $resp) {
-                    $result = $this->controller($req);
-                    $code = 200;
-                    $data = $result;
-                    if (array_key_exists('code', $result)) {
-                        $code = $result['code'];
-                        $data = $result['data'];
-                    }
-                    $resp->status($code)->json($data);
-                }));
+                $this->restApp->route(
+                    $router->set(
+                        $detail['method'],
+                        function ($req, $resp) use ($ctrl, $func) {
+                            $result = $ctrl->$func($req);
+                            $code = 200;
+                            $data = $result;
+                            if (array_key_exists('code', $result)) {
+                                $code = $result['code'];
+                                $data = $result['data'];
+                            }
+                            $resp->status($code)->json($data);
+                        }
+                    )
+                );
             }
         }
     }
 
-    function init () {
-        $routeBobKiki = new Rest_Route("/bob/kiki/{id}/{zozo}");
-        $this->restApp->route($routeBobKiki->set("GET", function ($req, $resp) {
-            $result = array( "aa" => 10 );
-            $resp->status(200)->json($result);
-        }));
-    }
-
+    /**
+     * Launch the routers
+     */
     function execute () {
         $this->restApp->execute();
     }

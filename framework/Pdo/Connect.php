@@ -2,6 +2,9 @@
 class Pdo_Connect extends PDO {
     var $connection;
 
+    /**
+     * Constructor
+     */
     function __construct($config) {
         $chain = $config["type"] . ':host=' . $config["host"]  .
                ';port=' . $config["port"] .
