@@ -8,8 +8,8 @@ class Picture_Controller {
         $this->db = $db;
     }
 
-    function get() {
-        $query = $data['query'];
+    function get($req) {
+        /*$query = $data['query'];
         if (!$query) {
             $sql = 'SELECT * FROM picture';
             $bindings = array();
@@ -34,6 +34,10 @@ class Picture_Controller {
         $sth->execute($bindings);
         return array(
             'data' => $sth->fetchAll(),
+            'code' => 200
+        );*/
+        return array(
+            'data' => $req,
             'code' => 200
         );
     }

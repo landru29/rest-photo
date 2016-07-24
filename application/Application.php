@@ -4,6 +4,7 @@ appendIncludePath(dirname(__FILE__));
 class Application {
     var $restApp;
     var $controllers;
+    var $controllerData;
 
     function Application($options) {
         $this->restApp = new Rest_Application();
@@ -27,6 +28,16 @@ class Application {
         return $result;
     }
 
+    function setController(callable $controller) {
+        $this->controllerData = $controller;
+    }
+
+    function controller($req) {
+        $ctrl = $this->controllerData[0];
+        $callb = $this->controllerData[1];
+        return $ctrl->$callb($req);
+    }
+
     function buildRoutes($desc) {
         $routes = array();
         forEach($desc as $ctrlTarget => $methodRoute) {
@@ -38,12 +49,13 @@ class Application {
         }
 
         forEach($routes as $route => $details) {
-            $router = new Rest_Route($route);
+            $router = new Rest_Route($route, $this);
             forEach($details as $detail) {
+                $ctrl = $this->controllers[$detail['ctrl']];
+                $func = $detail['func'];
+                $this->setController(array($ctrl, $func));
                 $this->restApp->route($router->set($detail['method'], function ($req, $resp) {
-                    $ctrl = $detail['ctrl'];
-                    $func = $detail['func'];
-                    $result = $ctrl->$func($req);
+                    $result = $this->controller($req);
                     $code = 200;
                     $data = $result;
                     if (array_key_exists('code', $result)) {
@@ -52,16 +64,6 @@ class Application {
                     }
                     $resp->status($code)->json($data);
                 }));
-            }
-        }
-    }
-
-    function LaunchControllers($ctrl, $method, $data) {
-        if (array_key_exists($ctrl, $this->controllers)) {
-            $controller = $this->controllers[$ctrl];
-            $method = ucFirst($method);
-            if (in_array(ucFirst($method), get_class_methods($controller))) {
-                return $controller->$method($data);
             }
         }
     }

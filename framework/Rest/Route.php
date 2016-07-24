@@ -24,10 +24,10 @@ class Rest_Route {
 
     function getRegexp () {
         $this->variables = array();
-        return '#' . preg_replace_callback('/\{([a-zA-Z0-9_]*)\}/', function($matches) {
+        return '#^' . preg_replace_callback('/\{([a-zA-Z0-9_]*)\}/', function($matches) {
             $this->variables[] =  $matches[1];
             return '([^/]*)';
-        }, $this->path) . '#';
+        }, $this->path) . '$#';
     }
 
     function init($path) {
