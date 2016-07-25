@@ -23,7 +23,7 @@ class Rest_Route {
      * @param String   $method   HTTP method
      * @param callable $callback Function to invoke (req, res)
      */
-    function set($method, callable $callback) {
+    function set($method, $callback) {
         $this->method = strtoupper($method);
         $this->callback = $callback;
         return $this;

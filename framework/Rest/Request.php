@@ -12,7 +12,7 @@ class Rest_Request {
      * Constructor
      */
     function __construct() {
-        $this->path = $_SERVER["PATH_INFO"];
+        $this->path = array_key_exists("PATH_INFO", $_SERVER) ? $_SERVER["PATH_INFO"] : $_SERVER["SCRIPT_URL"];
         $this->query = $_GET;
         $this->method = strtoupper($_SERVER["REQUEST_METHOD"]);
         $this->body = file_get_contents("php://input");
