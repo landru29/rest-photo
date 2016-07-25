@@ -4,6 +4,7 @@ appendIncludePath(dirname(__FILE__));
 class Application {
     var $restApp;
     var $controllers;
+    var $db;
 
     /**
      * Constructor
@@ -11,11 +12,15 @@ class Application {
      */
     function __construct ($options) {
         $this->restApp = new Rest_Application();
-        $this->pdo = new Pdo_Connect($options["config"]["database"]);
+        $this->db = new Pdo_Connect($options["config"]["database"]);
         $this->controllers = array(
             'picture' => new Picture_Controller($options["config"], $this)
         );
-        $this->buildRoutes($options["config"]['rest']);
+        $this->buildRoutes($options['config']['rest']);
+        $paginator = new Middleware_Paginator($options['config']);
+        $this->restApp->middleware("paginator", function($req, $res) use ($paginator) {
+            $paginator->middleware($req, $res);
+        });
     }
 
     /**

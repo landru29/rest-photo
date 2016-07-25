@@ -17,4 +17,7 @@ vids[]    =  "avi"
 
 [rest]
 ;controller/method = "METHOD/route"
-pictures/get  = "GET/pictures"
+pictures/get  = "GET/pics"
+
+[Paginator]
+limit = 10

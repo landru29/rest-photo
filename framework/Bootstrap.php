@@ -29,9 +29,7 @@ function getConfig() {
 
 if (!function_exists('http_response_code')) {
     function http_response_code($code = NULL) {
-
         if ($code !== NULL) {
-
             switch ($code) {
                 case 100: $text = 'Continue'; break;
                 case 101: $text = 'Switching Protocols'; break;
@@ -74,20 +72,12 @@ if (!function_exists('http_response_code')) {
                     exit('Unknown http status code "' . htmlentities($code) . '"');
                 break;
             }
-
             $protocol = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0');
-
             header($protocol . ' ' . $code . ' ' . $text);
-
             $GLOBALS['http_response_code'] = $code;
-
         } else {
-
             $code = (isset($GLOBALS['http_response_code']) ? $GLOBALS['http_response_code'] : 200);
-
         }
-
         return $code;
-
     }
 }

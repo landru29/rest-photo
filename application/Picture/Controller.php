@@ -1,7 +1,6 @@
 <?php
 class Picture_Controller {
     var $options;
-    var $db;
 
     function __construct($options, $application) {
         $this->options = $options;
@@ -9,35 +8,22 @@ class Picture_Controller {
     }
 
     function get($req) {
-        /*$query = $data['query'];
-        if (!$query) {
-            $sql = 'SELECT * FROM picture';
-            $bindings = array();
-        }
-        if (array_key_exists('filename', $query)) {
-            $sql = 'SELECT *
-                    FROM picture
-                    WHERE filename = :filename';
-            $bindings = array(
-                ':filename' => $query['filename']
-            );
-        }
-        if (array_key_exists('folder', $query)) {
-            $sql = 'SELECT *
-                    FROM picture
-                    WHERE folder = :folder';
-            $bindings = array(
-                ':folder' => $query['folder']
-            );
-        }
-        $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
-        $sth->execute($bindings);
+        $sql = 'SELECT * FROM picture LIMIT :limit OFFSET :offset';
+        $sth = $this->app->db->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+        $sth->bindValue(':limit', (int)$req->pagination['limit'], PDO::PARAM_INT);
+        $sth->bindValue(':offset', (int)$req->pagination['offset'], PDO::PARAM_INT);
+        $sth->execute();
+
+        $counter = $this->app->db->prepare("SELECT COUNT(*) FROM picture", array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+        $counter->execute();
+
+        $pages = ceil($counter->fetch()[0] / $req->pagination['limit']);
+
         return array(
-            'data' => $sth->fetchAll(),
-            'code' => 200
-        );*/
-        return array(
-            'data' => $req,
+            'data' => array(
+                'values' => $sth->fetchAll(PDO::FETCH_ASSOC),
+                'pages' => $pages,
+            ),
             'code' => 200
         );
     }
