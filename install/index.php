@@ -5,6 +5,21 @@ include dirname(__FILE__) . "/../framework/Bootstrap.php";
 include dirname(__FILE__) . "/Thumb.php";
 include dirname(__FILE__) . "/Obsolete.php";
 
+function getFormats($options) {
+    $keys = array_filter(
+        array_keys($options),
+        function ($elt) {
+            return preg_match('#^format_#', $elt);
+        }
+    );
+    return array_map(
+        function($key) {
+            preg_match('#^format_(.*)#', $key, $match);
+            return "`" . $match[1] . "` varchar(300) NOT NULL, ";
+        },
+        $keys
+    );
+}
 
 try {
     echo "* Reading config";
@@ -29,18 +44,19 @@ try {
 
 try {
     echo "* Creating tables";
-    $connexion->query("CREATE TABLE IF NOT EXISTS `picture` ("
+    $query = "CREATE TABLE IF NOT EXISTS `picture` ("
     . "  `filename` varchar(300) NOT NULL,"
     . "  `basename` varchar(300) NOT NULL,"
     . "  `rate` tinyint(3) unsigned NOT NULL,"
     . "  `level` tinyint(3) unsigned NOT NULL,"
     . "  `folder` varchar(300) NOT NULL,"
-    . "  `thumb` varchar(300) NOT NULL,"
+    . join(" ", getFormats($config["album"]))
     . "  `title` varchar(100) NOT NULL,"
     . "  `type` varchar(30) NOT NULL,"
     . "  `description` text NOT NULL,"
     . "  PRIMARY KEY (`filename`)"
-    . ") ENGINE=InnoDB DEFAULT CHARSET=latin1;");
+    . ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+    $connexion->query($query);
     echo "\t\t\033[32m[OK]\033[0m\n";
 } catch(Exception $e) {
     echo "\t\t\033[31m[ERROR]\033[0m\n";

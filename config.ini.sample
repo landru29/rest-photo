@@ -7,13 +7,15 @@ host      = "localhost"
 name      = "dbName"
 
 [album]
-folder    = "./pictures"
-width     = 100
-pics[]    = "jpg"
-pics[]    = "jpeg"
-vids[]    =  "mpeg"
-vids[]    =  "mpg"
-vids[]    =  "avi"
+[album]
+folder                 = "./pictures"
+pics[]                 = "jpg"
+pics[]                 = "jpeg"
+format_thumb           = 100
+format_medium          = 800
+vids[]                 = "mpeg"
+vids[]                 = "mpg"
+vids[]                 = "avi"
 
 [rest]
 ;controller/method = "METHOD/route"

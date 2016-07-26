@@ -9,18 +9,47 @@ class Thumb {
         $this->dirToArray($options["folder"]);
         $this->options = $options;
         $this->dbConnexion = $dbConnexion;
-        $this->pictureBuilder();
+        $formats = $this->getFormats();
+        foreach ($formats as $format) {
+            echo "######################### " . $format['name'] . " #########################\n";
+            $this->pictureBuilder($format['name'], $format['size']);
+        }
     }
 
-    function pictureBuilder() {
+    function getFormats() {
+        $keys = array_filter(
+            array_keys($this->options),
+            function ($elt) {
+                return preg_match('#^format_#', $elt);
+            }
+        );
+        return array_map(
+            function($key) {
+                preg_match('#^format_(.*)#', $key, $match);
+                return array(
+                    'name' => $match[1],
+                    'size' => $this->options[$key],
+                );
+            },
+            $keys
+        );
+    }
+
+    function pictureBuilder($suffixe, $size) {
         $total = count($this->files);
         $i = 0;
         forEach($this->files as $file) {
-            if (preg_match("#" . join($this->options["pics"], '$|') . "$#i", $file)) {
+            $regexp = array_map(function($elt) {
+                return '^[^@]*' . $elt;
+            }, $this->options['pics']);
+            $completeRegex = '#' . join($regexp, '$|') . '$#i';
+            if (preg_match($completeRegex, $file)) {
                 $info = pathinfo($file);
-                $thumbFilename = $info["dirname"] . DIRECTORY_SEPARATOR . $info["filename"] . "_thumb." . $info["extension"];
-                $this->pictureToThumb($file, $thumbFilename);
-                $this->updateDb($file, $thumbFilename);
+                $thumbFilename = $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension'];
+                $this->pictureToThumb($file, $thumbFilename, $size);
+                $this->updateDb($file, $thumbFilename, $suffixe);
+            } else {
+                echo "  - \033[90mSkipping " . $file . "\033[0m\n";
             }
             $i++;
             $percent = floor(100 * ($i) / $total);
@@ -46,7 +75,7 @@ class Thumb {
         return "undefined";
     }
 
-    function updateDb($filename, $thumbname) {
+    function updateDb($filename, $thumbname, $suffixe) {
         $filename = $this->cleanFilename($filename);
         $thumbname = $this->cleanFilename($thumbname);
         $info = pathinfo($filename);
@@ -72,11 +101,11 @@ class Thumb {
             if (count($sth->fetchAll())) {
                 echo "\t\033[34m(UPDATE)\033[0m";
                 $sql = 'UPDATE picture
-                SET thumb=:thumbname, folder=:folder, level=:level, basename=:basename, type=:type
+                SET ' . $suffixe . '=:thumbname, folder=:folder, level=:level, basename=:basename, type=:type
                 WHERE filename = :filename';
             } else {
                 echo "\t\033[35m(CREATE)\033[0m";
-                $sql = 'INSERT INTO picture (filename, rate, thumb, title, folder, level, basename, type)
+                $sql = 'INSERT INTO picture (filename, rate, ' . $suffixe . ', title, folder, level, basename, type)
                         VALUES (:filename, 0, :thumbname, :title, :folder, :level, :basename, :type)';
                 $bindings['title'] = $title;
             }
@@ -139,7 +168,7 @@ class Thumb {
         }
     }
 
-    function pictureToThumb($filename, $thumbname) {
+    function pictureToThumb($filename, $thumbname, $size) {
         try {
             echo "   - Creating (File) " . $thumbname;
             $img = imagecreatefromjpeg( $filename );
@@ -152,10 +181,10 @@ class Thumb {
 
             // calculate thumbnail size
             if ($height < $width) {
-                $new_width = $this->options["width"];
+                $new_width = $size;
                 $new_height = floor( $height * ( $new_width / $width ) );
             } else {
-                $new_height = $this->options["width"];
+                $new_height = $size;
                 $new_width = floor( $width * ( $new_height / $height) );
             }
 
