@@ -17,9 +17,11 @@ class Middleware_Paginator {
         $page = array_key_exists('page', $req->query) ? $req->query['page'] : 1;
         $limit = array_key_exists('limit', $req->query) ? $req->query['limit'] : 10;
         $limit = array_key_exists('perPage', $req->query) ? $req->query['perPage'] : $limit;
+        $offset = array_key_exists('offset', $req->query) ? $req->query['offset'] : ($page - 1) * $limit;
         $req->pagination = array(
-            'offset' => array_key_exists('offset', $req->query) ? $req->query['offset'] : ($page - 1) * $limit,
+            'offset' => $offset,
             'limit' => $limit,
+            'page' => floor($offset / $limit) + 1,
         );
     }
 }

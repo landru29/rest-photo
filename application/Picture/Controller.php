@@ -18,13 +18,63 @@ class Picture_Controller {
         $counter->execute();
 
         $pages = ceil($counter->fetch()[0] / $req->pagination['limit']);
+        
+        $links = new Rest_Link($req->baseUrl);
+        $links->add(
+            'self',
+            '/pics',
+            array(
+                'page' => $req->pagination['page'],
+                'limit' => $req->pagination['limit'],
+            )
+        );
+
+        $links->add(
+            'first',
+            '/pics',
+            array(
+                'page' => 0,
+                'limit' => $req->pagination['limit'],
+            )
+        );
+
+        $links->add(
+            'last',
+            '/pics',
+            array(
+                'page' => $pages,
+                'limit' => $req->pagination['limit'],
+            )
+        );
+
+        if ($req->pagination['page']>1) {
+            $links->add(
+                'previous',
+                '/pics',
+                array(
+                    'page' => $req->pagination['page'] - 1,
+                    'limit' => $req->pagination['limit'],
+                )
+            );
+        }
+
+        if ($req->pagination['page']<$pages) {
+            $links->add(
+                'next',
+                '/pics',
+                array(
+                    'page' => $req->pagination['page'] + 1,
+                    'limit' => $req->pagination['limit'],
+                )
+            );
+        }
 
         return array(
-            'data' => array(
-                'values' => $sth->fetchAll(PDO::FETCH_ASSOC),
-                'pages' => $pages,
-            ),
-            'code' => 200
+            'code' => $pages > (int)$req->pagination['page'] ? 206 : 200,
+            'data' => $sth->fetchAll(PDO::FETCH_ASSOC),
+            'headers' => array(
+                'link' => $links,
+            )
         );
     }
 }

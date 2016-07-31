@@ -71,6 +71,11 @@ class Application {
                                 $code = $result['code'];
                                 $data = $result['data'];
                             }
+                            if (array_key_exists('headers', $result)) {
+                                foreach ($result['headers'] as $key => $value) {
+                                    $resp->header($key, $value);
+                                }
+                            }
                             $resp->status($code)->json($data);
                         }
                     )
