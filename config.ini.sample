@@ -7,7 +7,6 @@ host      = "localhost"
 name      = "dbName"
 
 [album]
-[album]
 folder                 = "./pictures"
 pics[]                 = "jpg"
 pics[]                 = "jpeg"
