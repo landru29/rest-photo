@@ -18,7 +18,7 @@ class Picture_Controller {
         $counter->execute();
 
         $pages = ceil($counter->fetch()[0] / $req->pagination['limit']);
-        
+
         $links = new Rest_Link($req->baseUrl);
         $links->add(
             'self',
@@ -74,6 +74,7 @@ class Picture_Controller {
             'data' => $sth->fetchAll(PDO::FETCH_ASSOC),
             'headers' => array(
                 'link' => $links,
+                'X-Total-Count' => $pages
             )
         );
     }
