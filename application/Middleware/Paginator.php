@@ -8,14 +8,14 @@ class Middleware_Paginator {
         if (array_key_exists($className, $config)) {
             $conf = $config[$className];
             if (array_key_exists('limit', $conf)) {
-                $defaultLimit = $conf['limit'];
+                $this->defaultLimit = $conf['limit'];
             }
         }
     }
 
     function middleware ($req, $res) {
         $page = array_key_exists('page', $req->query) ? $req->query['page'] : 1;
-        $limit = array_key_exists('limit', $req->query) ? $req->query['limit'] : $defaultLimit;
+        $limit = array_key_exists('limit', $req->query) ? $req->query['limit'] : $this->defaultLimit;
         $limit = array_key_exists('perPage', $req->query) ? $req->query['perPage'] : $limit;
         $offset = array_key_exists('offset', $req->query) ? $req->query['offset'] : ($page - 1) * $limit;
         $req->pagination = array(

@@ -18,8 +18,12 @@ class Application {
         );
         $this->buildRoutes($options['config']['rest']);
         $paginator = new Middleware_Paginator($options['config']);
+        $thumb = new Middleware_Thumb($options['config']);
         $this->restApp->middleware("paginator", function($req, $res) use ($paginator) {
             $paginator->middleware($req, $res);
+        });
+        $this->restApp->middleware("thumb", function($req, $res) use ($thumb) {
+            $thumb->middleware($req, $res);
         });
     }
 

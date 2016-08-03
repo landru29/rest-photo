@@ -17,6 +17,7 @@ format_medium          = 800
 vids[]                 = "mpeg"
 vids[]                 = "mpg"
 vids[]                 = "avi"
+baseUrl                = "[PROTOCOL]://[HOST]/pictures/"
 
 [rest]
 ;controller/method = "METHOD/route"

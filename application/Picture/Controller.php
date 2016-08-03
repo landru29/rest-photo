@@ -68,10 +68,17 @@ class Picture_Controller {
                 )
             );
         }
-
+        $self = $this;
         return array(
             'code' => $pages > (int)$req->pagination['page'] ? 206 : 200,
-            'data' => $sth->fetchAll(PDO::FETCH_ASSOC),
+            'data' => array_map(function($elt) use ($req, $self) {
+                $baseUrl = $req->thumb['baseUrl'];
+                $elt['filename'] = $baseUrl . $elt['filename'];
+                foreach($req->thumb['formats'] as $key) {
+                    $elt[$key] = $baseUrl . $elt[$key];
+                }
+                return $elt;
+                }, $sth->fetchAll(PDO::FETCH_ASSOC)),
             'headers' => array(
                 'link' => $links,
                 'X-Total-Count' => $pages

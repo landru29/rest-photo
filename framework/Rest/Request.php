@@ -19,6 +19,8 @@ class Rest_Request {
         $this->body = file_get_contents("php://input");
         $this->params = array();
         $this->headers = apache_request_headers();
+        $this->host = $_SERVER['SERVER_NAME'];
+        $this->protocol = $_SERVER['REQUEST_SCHEME'];
     }
 
 

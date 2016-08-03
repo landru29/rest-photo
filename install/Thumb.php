@@ -56,8 +56,9 @@ class Thumb {
             $completeRegex = '#' . join($regexp, '$|') . '$#i';
             if (preg_match($completeRegex, $file)) {
                 $info = pathinfo($file);
-                $thumbFilename = $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension'];
+                $thumbFilename = preg_replace('#^\./#', '', $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension']);
                 $this->pictureToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
+                //$this->updateDb($this->getSource($file), $this->getBuild($thumbFilename), $suffixe);
                 $this->updateDb($file, $thumbFilename, $suffixe);
             } else {
                 echo "  - \033[90mSkipping " . $file . "\033[0m\n";
@@ -72,24 +73,31 @@ class Thumb {
 
     function getType($filename) {
         $info = pathinfo($filename);
-        $ext = $info['extension'];
+        $ext = strtolower($info['extension']);
         if (in_array($ext , $this->options['pics'])) {
-            return "photo";
+            return 'photo';
         }
         if (in_array($ext , $this->options['vids'])) {
-            return "video";
+            return 'video';
         }
-        return "undefined";
+        return 'undefined';
+    }
+
+    function cleanFilename ($file) {
+        return preg_replace('#^/|^\./#', '', $file);
+        //return preg_replace('#^/|^\./#', '', substr($file, strlen($this->options['cwd'])));
     }
 
     function updateDb($filename, $thumbname, $suffixe) {
+        $filename = $this->cleanFilename($filename);
+        $thumbname = $this->cleanFilename($thumbname);
         $info = pathinfo($filename);
         $title = $info['filename'];
         $folder = preg_replace('#^.$#', '', $info['dirname']);
         $basename = $info['basename'];
         $level = count(preg_split('@/@', $folder, NULL, PREG_SPLIT_NO_EMPTY));
         try {
-            echo "   - Inserting (DB) " . $thumbname;
+            echo '   - Inserting (DB) ' . $thumbname;
             $sql = 'SELECT *
                     FROM picture
                     WHERE filename = :filename';
@@ -99,7 +107,7 @@ class Thumb {
                 ':filename'  => $filename,
                 ':basename'  => $basename,
                 ':thumbname' => $thumbname,
-                ':folder'    => $folder,
+                ':folder'    => '/' . $folder,
                 ':level'     => $level,
                 ':type'      => $this->getType($filename),
             );
