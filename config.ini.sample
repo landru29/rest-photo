@@ -7,7 +7,9 @@ host      = "localhost"
 name      = "dbName"
 
 [album]
-folder                 = "./pictures"
+source                 = "originals"
+build                  = "generated"
+cwd                    = "./pictures"
 pics[]                 = "jpg"
 pics[]                 = "jpeg"
 format_thumb           = 100

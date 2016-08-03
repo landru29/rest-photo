@@ -6,14 +6,25 @@ class Thumb {
 
     function __construct($options, $dbConnexion) {
         $this->files = array();
-        $this->dirToArray($options["folder"]);
         $this->options = $options;
+        $this->dirToArray($this->getSource());
+        //print_r($this->files);
         $this->dbConnexion = $dbConnexion;
         $formats = $this->getFormats();
         foreach ($formats as $format) {
             echo "######################### " . $format['name'] . " #########################\n";
             $this->pictureBuilder($format['name'], $format['size']);
         }
+    }
+
+    function getSource($filename = null) {
+        return preg_replace('#/\.#', '', $this->options["cwd"] . DIRECTORY_SEPARATOR . $this->options["source"] .
+        (!empty($filename) ?  DIRECTORY_SEPARATOR . $filename : ""));
+    }
+
+    function getBuild($filename = null) {
+        return preg_replace('#/\.#', '', $this->options["cwd"] . DIRECTORY_SEPARATOR . $this->options["build"] .
+        (!empty($filename) ?  DIRECTORY_SEPARATOR . $filename : ""));
     }
 
     function getFormats() {
@@ -46,7 +57,7 @@ class Thumb {
             if (preg_match($completeRegex, $file)) {
                 $info = pathinfo($file);
                 $thumbFilename = $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension'];
-                $this->pictureToThumb($file, $thumbFilename, $size);
+                $this->pictureToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
                 $this->updateDb($file, $thumbFilename, $suffixe);
             } else {
                 echo "  - \033[90mSkipping " . $file . "\033[0m\n";
@@ -57,10 +68,6 @@ class Thumb {
                 echo "-------------------------------------- " . $percent . "%\n";
             }
         }
-    }
-
-    function cleanFilename ($file) {
-        return preg_replace('#^/#', '', substr($file, strlen($this->options["folder"])));
     }
 
     function getType($filename) {
@@ -76,8 +83,6 @@ class Thumb {
     }
 
     function updateDb($filename, $thumbname, $suffixe) {
-        $filename = $this->cleanFilename($filename);
-        $thumbname = $this->cleanFilename($thumbname);
         $info = pathinfo($filename);
         $title = $info['filename'];
         $folder = preg_replace('#^.$#', '', $info['dirname']);
@@ -170,6 +175,10 @@ class Thumb {
 
     function pictureToThumb($filename, $thumbname, $size) {
         try {
+            if ((!file_exists(dirname($thumbname))) && (!mkdir(dirname($thumbname), 0777, true))) {
+                throw new Exception("Could not create folder " . dirname($thumbname) . " for file " . $thumbname, 1);
+            }
+
             echo "   - Creating (File) " . $thumbname;
             $img = imagecreatefromjpeg( $filename );
 
@@ -204,15 +213,18 @@ class Thumb {
         }
     }
 
-    function dirToArray($dir) {
+    function dirToArray($cwd, $subdir = "") {
+        echo "############## " . $cwd . " - " . $subdir . "\n";
+        $dir = $cwd .(!empty($subdir) ? DIRECTORY_SEPARATOR . $subdir : "");
+        $subdir = empty($subdir) ? "" : $subdir;
         $cdir = scandir($dir);
         foreach ($cdir as $key => $value) {
           if (!in_array($value,array(".",".."))) {
              if (is_dir($dir . DIRECTORY_SEPARATOR . $value)) {
-                 $this->dirToArray($dir . DIRECTORY_SEPARATOR . $value);
+                 $this->dirToArray($cwd, $subdir . DIRECTORY_SEPARATOR . $value);
              }
              else if ( !preg_match('#_thumb\.[a-zA-Z0-9]*#', $value)) {
-                $this->files[] = $dir . DIRECTORY_SEPARATOR . $value;
+                $this->files[] = preg_replace("#^/*#", "", $subdir . DIRECTORY_SEPARATOR . $value);
              }
           }
         }

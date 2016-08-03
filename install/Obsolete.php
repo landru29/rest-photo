@@ -17,10 +17,10 @@ class Obsolete {
         $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
         $sth->execute();
         forEach($sth->fetchAll() as $data) {
-            $filename = $this->options["folder"] . DIRECTORY_SEPARATOR . $data["filename"];
+            $filename = $this->options["cwd"] . DIRECTORY_SEPARATOR . $this->options["source"] . DIRECTORY_SEPARATOR . $data["filename"];
             if (!file_exists($filename)) {
                 $result[] = $data["filename"];
-                $thumb = $this->options["folder"] . DIRECTORY_SEPARATOR . $data["thumb"];
+                $thumb = $this->options["cwd"] . DIRECTORY_SEPARATOR .$this->options["build"] . DIRECTORY_SEPARATOR . $data["thumb"];
                 if (file_exists($thumb)) {
                     unlink($thumb);
                 }
