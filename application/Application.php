@@ -17,8 +17,13 @@ class Application {
             'picture' => new Picture_Controller($options["config"], $this)
         );
         $this->buildRoutes($options['config']['rest']);
+        $cors = new Middleware_Cors($options['config']);
         $paginator = new Middleware_Paginator($options['config']);
         $thumb = new Middleware_Thumb($options['config']);
+
+        $this->restApp->middleware("cors", function($req, $res) use ($cors) {
+            $cors->middleware($req, $res);
+        });
         $this->restApp->middleware("paginator", function($req, $res) use ($paginator) {
             $paginator->middleware($req, $res);
         });
