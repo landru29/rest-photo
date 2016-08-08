@@ -25,5 +25,13 @@ class Middleware_Cors {
             'client-application',
         )));
         header('Access-Control-Allow-Origin: ' . $origin);
+        header('Access-Control-Expose-Headers: '. join(',', array(
+            'Referer, User-Agent',
+            'Content-Type',
+            'access-token',
+            'refresh-token',
+            'link',
+            'X-Total-Count',
+        )));
     }
 }

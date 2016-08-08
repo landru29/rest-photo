@@ -52,6 +52,7 @@ class Rest_Response {
      * @return Rest_Response This object
      */
     function json ($data) {
+        $this->headers['content-type'] = 'application/json';
         $this->data = json_encode($data);
         return $this;
     }
