@@ -7,6 +7,11 @@ class Picture_Controller {
         $this->app = $application;
     }
 
+    function buildSource($img, $subname, $req) {
+        $sep = substr($req->thumb['baseUrl'], -1) == '/' ? '' : '/';
+        return $req->thumb['baseUrl'] . $sep . preg_replace('#//#', '/', $this->options['album'][$subname] . '/' . $img);
+    }
+
     function get($req) {
         $sql = 'SELECT * FROM picture LIMIT :limit OFFSET :offset';
         $sth = $this->app->db->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
@@ -72,10 +77,11 @@ class Picture_Controller {
         return array(
             'code' => $pages > (int)$req->pagination['page'] ? 206 : 200,
             'data' => array_map(function($elt) use ($req, $self) {
-                $baseUrl = $req->thumb['baseUrl'];
-                $elt['filename'] = $baseUrl . $elt['filename'];
+                //$baseUrl = $req->thumb['baseUrl'];
+                $elt['filename'] = $self->buildSource($elt['filename'], 'source', $req);//$baseUrl . $this->options['album']['source'] . $elt['filename'];
                 foreach($req->thumb['formats'] as $key) {
-                    $elt[$key] = $baseUrl . $elt[$key];
+                    //$elt[$key] = $baseUrl . $elt[$key];
+                    $elt[$key] = $self->buildSource($elt[$key], 'build', $req);
                 }
                 return $elt;
                 }, $sth->fetchAll(PDO::FETCH_ASSOC)),
