@@ -17,16 +17,30 @@ class Thumb {
         }
     }
 
+    /**
+     * Get complete source filename
+     * @param  string $filename
+     * @return string
+     */
     function getSource($filename = null) {
         return preg_replace('#/\.#', '', $this->options["cwd"] . DIRECTORY_SEPARATOR . $this->options["source"] .
         (!empty($filename) ?  DIRECTORY_SEPARATOR . $filename : ""));
     }
 
+    /**
+     * get complete build filename
+     * @param  [string] $filename
+     * @return [string]
+     */
     function getBuild($filename = null) {
         return preg_replace('#/\.#', '', $this->options["cwd"] . DIRECTORY_SEPARATOR . $this->options["build"] .
         (!empty($filename) ?  DIRECTORY_SEPARATOR . $filename : ""));
     }
 
+    /**
+     * Get all thumb formats from config file
+     * @return array
+     */
     function getFormats() {
         $keys = array_filter(
             array_keys($this->options),
@@ -46,6 +60,11 @@ class Thumb {
         );
     }
 
+    /**
+     * Main thumb builder
+     * @param  string $suffixe filename suffixe
+     * @param  number $size    Size in px
+     */
     function pictureBuilder($suffixe, $size) {
         $total = count($this->files);
         $i = 0;
@@ -57,9 +76,19 @@ class Thumb {
             if (preg_match($completeRegex, $file)) {
                 $info = pathinfo($file);
                 $thumbFilename = preg_replace('#^\./#', '', $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension']);
-                $this->pictureToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
-                //$this->updateDb($this->getSource($file), $this->getBuild($thumbFilename), $suffixe);
-                $this->updateDb($file, $thumbFilename, $suffixe);
+                switch ($this->getType($file)) {
+                    case 'photo':
+                        $this->pictureToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
+                        $this->updateDb($file, $thumbFilename, $suffixe);
+                        break;
+                    case 'video':
+                        $this->videoToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
+                        $this->updateDb($file, $thumbFilename, $suffixe);
+                        break;
+                    default:
+                        echo "  - \033[90mUnknown format " . $file . "\033[0m\n";
+                }
+
             } else {
                 echo "  - \033[90mSkipping " . $file . "\033[0m\n";
             }
@@ -71,6 +100,11 @@ class Thumb {
         }
     }
 
+    /**
+     * Get file type (photo | video)
+     * @param  string $filename
+     * @return string
+     */
     function getType($filename) {
         $info = pathinfo($filename);
         $ext = strtolower($info['extension']);
@@ -83,11 +117,21 @@ class Thumb {
         return 'undefined';
     }
 
+    /**
+     * [cleanFilename description]
+     * @param  [type] $file [description]
+     * @return [type]       [description]
+     */
     function cleanFilename ($file) {
         return preg_replace('#^/|^\./#', '', $file);
-        //return preg_replace('#^/|^\./#', '', substr($file, strlen($this->options['cwd'])));
     }
 
+    /**
+     * Update database
+     * @param  string $filename  source filename
+     * @param  string $thumbname generated pic filename
+     * @param  string $suffixe   format
+     */
     function updateDb($filename, $thumbname, $suffixe) {
         $filename = $this->cleanFilename($filename);
         $thumbname = $this->cleanFilename($thumbname);
@@ -132,6 +176,11 @@ class Thumb {
         }
     }
 
+    /**
+     * Perform a hard rotation of the image, depending on exif
+     * @param    string $filename Source filename
+     * @param  resource $img      Image
+     */
     function rotateThumb($filename, $img) {
         // get orientation
         try {
@@ -181,6 +230,12 @@ class Thumb {
         }
     }
 
+    /**
+     * Generate the thumb from the picture
+     * @param  string $filename  source filename
+     * @param  string $thumbname build filename
+     * @param  number $size      size in px
+     */
     function pictureToThumb($filename, $thumbname, $size) {
         try {
             if ((!file_exists(dirname($thumbname))) && (!mkdir(dirname($thumbname), 0777, true))) {
@@ -221,6 +276,38 @@ class Thumb {
         }
     }
 
+    /**
+     * Generate the thumb from the video
+     * @param  string $filename  source filename
+     * @param  string $thumbname build filename
+     * @param  number $size      size in px
+     */
+    function videoToThumb($filename, $thumbname, $size) {
+        $transformer = (new Video_Ffmpeg()).exist();
+        if (!$transformer) {
+            $transformer = (new Video_AvConv()).exist();
+        }
+        $transformer->generate(
+            $filename,
+            $thumbname, 
+            array(
+                'width'=> $size,
+                'height' => $size,
+            ),
+            1
+        );
+        if (!$transformer) {
+            echo "\t\t\t\033[31m[ERROR]\033[0m\nCould not find a video tool";
+            return;
+        }
+    }
+
+    /**
+     * Scan a complete folder deeply to retrieve files in an array
+     * @param  string $cwd    base folder
+     * @param  string $subdir subdir to scan
+     * @return array          list of files
+     */
     function dirToArray($cwd, $subdir = "") {
         echo "############## " . $cwd . " - " . $subdir . "\n";
         $dir = $cwd .(!empty($subdir) ? DIRECTORY_SEPARATOR . $subdir : "");

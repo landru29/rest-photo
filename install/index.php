@@ -5,6 +5,11 @@ include dirname(__FILE__) . "/../framework/Bootstrap.php";
 include dirname(__FILE__) . "/Thumb.php";
 include dirname(__FILE__) . "/Obsolete.php";
 
+function __autoload($class_name) {
+    $filename = preg_replace('/_/', '/', $class_name);
+    include $filename . '.php';
+}
+
 function getFormats($options) {
     $keys = array_filter(
         array_keys($options),
