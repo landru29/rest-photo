@@ -303,6 +303,9 @@ class Thumb {
      * @param  number $size      size in px
      */
     function videoToThumb($filename, $thumbname, $size) {
+        if ((!file_exists(dirname($thumbname))) && (!mkdir(dirname($thumbname), 0777, true))) {
+            throw new Exception("Could not create folder " . dirname($thumbname) . " for file " . $thumbname, 1);
+        }
         $transformer = new Video_Ffmpeg();
         if (!$transformer->exists()) {
             $transformer = new Video_AvConv();
