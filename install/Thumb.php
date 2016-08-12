@@ -8,7 +8,6 @@ class Thumb {
         $this->files = array();
         $this->options = $options;
         $this->dirToArray($this->getSource());
-        //print_r($this->files);
         $this->dbConnexion = $dbConnexion;
         $formats = $this->getFormats();
         foreach ($formats as $format) {
@@ -60,6 +59,17 @@ class Thumb {
         );
     }
 
+    function logError($filename, $stack) {
+        $sql = 'INSERT INTO errors (filename, stack) VALUES (:filename, :stack)';
+        $sth = $this->dbConnexion->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+        $sth->execute(
+            array(
+                'filename' => $filename,
+                'stack'     => $stack
+            )
+        );
+    }
+
     /**
      * Main thumb builder
      * @param  string $suffixe filename suffixe
@@ -82,19 +92,22 @@ class Thumb {
             if (preg_match($completeRegex, $file)) {
                 $info = pathinfo($file);
                 $thumbFilename = preg_replace('#^\./#', '', $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension']);
-                switch ($this->getType($file)) {
-                    case 'photo':
-                        $this->pictureToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
-                        $this->updateDb($file, $thumbFilename, $suffixe);
-                        break;
-                    case 'video':
-                        $this->videoToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
-                        $this->updateDb($file, $thumbFilename, $suffixe);
-                        break;
-                    default:
-                        echo "  - \033[90mUnknown format " . $file . "\033[0m\n";
+                try {
+                    switch ($this->getType($file)) {
+                        case 'photo':
+                            $this->pictureToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
+                            $this->updateDb($file, $thumbFilename, $suffixe);
+                            break;
+                        case 'video':
+                            $this->videoToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
+                            $this->updateDb($file, $thumbFilename, $suffixe);
+                            break;
+                        default:
+                            echo "  - \033[90mUnknown format " . $file . "\033[0m\n";
+                    }
+                } catch (Exception $e) {
+                    $this->logError($file, $e->getMessage());
                 }
-
             } else {
                 echo "  - \033[90mSkipping " . $file . "\033[0m\n";
             }

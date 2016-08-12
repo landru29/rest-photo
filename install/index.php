@@ -59,6 +59,12 @@ try {
     . "  PRIMARY KEY (`filename`)"
     . ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
     $connexion->query($query);
+    $query = "CREATE TABLE IF NOT EXISTS `errors` ("
+    ."`filename` varchar(300) NOT NULL,"
+    ."`stack` text NOT NULL"
+    .") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+    $connexion->query($query);
+    $connexion->query("TRUNCATE errors;");
     echo "\t\t\033[32m[OK]\033[0m\n";
 } catch(Exception $e) {
     echo "\t\t\033[31m[ERROR]\033[0m\n";
