@@ -19,7 +19,7 @@ class Video_Avconv {
         $cmd = "{$this->comm_installation_path} -i {$video_file_path} -deinterlace -an -ss {$seconds} -t 00:00:01  -s {$thumbSize} -r 1 -y -vcodec mjpeg -f mjpeg {$thumbnail_path} 2>&1";
         exec($cmd, $output, $retval);
         if ($retval) {
-            throw new Exception("Error Generating video thumb with avconv", 1);
+            throw new Exception("Error Generating video thumb with avconv\n" . implode("\n", $output), 1);
         }
     }
 }
