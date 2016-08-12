@@ -68,6 +68,7 @@ class Thumb {
                 'stack'     => $stack
             )
         );
+        echo "\t\t\t\033[31m[FATAL]\033[0m\n" . $filename . "\n" . $stack;
     }
 
     /**
