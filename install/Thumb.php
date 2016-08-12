@@ -12,7 +12,6 @@ class Thumb {
         $this->dbConnexion = $dbConnexion;
         $formats = $this->getFormats();
         foreach ($formats as $format) {
-            echo "######################### " . $format['name'] . " #########################\n";
             $this->pictureBuilder($format['name'], $format['size']);
         }
     }
@@ -42,6 +41,7 @@ class Thumb {
      * @return array
      */
     function getFormats() {
+        $self = $this;
         $keys = array_filter(
             array_keys($this->options),
             function ($elt) {
@@ -49,11 +49,11 @@ class Thumb {
             }
         );
         return array_map(
-            function($key) {
+            function($key) use ($self) {
                 preg_match('#^format_(.*)#', $key, $match);
                 return array(
                     'name' => $match[1],
-                    'size' => $this->options[$key],
+                    'size' => $self->options[$key],
                 );
             },
             $keys
@@ -69,9 +69,15 @@ class Thumb {
         $total = count($this->files);
         $i = 0;
         forEach($this->files as $file) {
-            $regexp = array_map(function($elt) {
-                return '^[^@]*' . $elt;
-            }, $this->options['pics']);
+            $regexp = array_map(
+                function($elt) {
+                    return '^[^@]*' . $elt;
+                },
+                array_merge(
+                    $this->options['pics'],
+                    $this->options['vids']
+                )
+            );
             $completeRegex = '#' . join($regexp, '$|') . '$#i';
             if (preg_match($completeRegex, $file)) {
                 $info = pathinfo($file);
@@ -289,7 +295,7 @@ class Thumb {
         }
         $transformer->generate(
             $filename,
-            $thumbname, 
+            $thumbname,
             array(
                 'width'=> $size,
                 'height' => $size,
@@ -309,7 +315,6 @@ class Thumb {
      * @return array          list of files
      */
     function dirToArray($cwd, $subdir = "") {
-        echo "############## " . $cwd . " - " . $subdir . "\n";
         $dir = $cwd .(!empty($subdir) ? DIRECTORY_SEPARATOR . $subdir : "");
         $subdir = empty($subdir) ? "" : $subdir;
         $cdir = scandir($dir);
