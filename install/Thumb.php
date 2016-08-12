@@ -289,9 +289,9 @@ class Thumb {
      * @param  number $size      size in px
      */
     function videoToThumb($filename, $thumbname, $size) {
-        $transformer = (new Video_Ffmpeg()).exist();
-        if (!$transformer) {
-            $transformer = (new Video_AvConv()).exist();
+        $transformer = new Video_Ffmpeg();
+        if (!$transformer->exists()) {
+            $transformer = new Video_AvConv();
         }
         $transformer->generate(
             $filename,
