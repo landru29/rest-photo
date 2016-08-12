@@ -92,14 +92,15 @@ class Thumb {
             $completeRegex = '#' . join($regexp, '$|') . '$#i';
             if (preg_match($completeRegex, $file)) {
                 $info = pathinfo($file);
-                $thumbFilename = preg_replace('#^\./#', '', $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension']);
                 try {
                     switch ($this->getType($file)) {
                         case 'photo':
+                            $thumbFilename = preg_replace('#^\./#', '', $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.' . $info['extension']);
                             $this->pictureToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
                             $this->updateDb($file, $thumbFilename, $suffixe);
                             break;
                         case 'video':
+                            $thumbFilename = preg_replace('#^\./#', '', $info['dirname'] . DIRECTORY_SEPARATOR . $info["filename"] . '@' . $suffixe . '.jpg');
                             $this->videoToThumb($this->getSource($file), $this->getBuild($thumbFilename), $size);
                             $this->updateDb($file, $thumbFilename, $suffixe);
                             break;
