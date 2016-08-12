@@ -5,6 +5,8 @@ include dirname(__FILE__) . "/../framework/Bootstrap.php";
 include dirname(__FILE__) . "/Thumb.php";
 include dirname(__FILE__) . "/Obsolete.php";
 
+appendIncludePath(dirname(__FILE__));
+
 function getFormats($options) {
     $keys = array_filter(
         array_keys($options),
